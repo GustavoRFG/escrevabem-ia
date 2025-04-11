@@ -1,103 +1,95 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
+import { Upload, SpellCheck2, Bot } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [file, setFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [transcription, setTranscription] = useState<string | null>(null);
+  const [evaluation, setEvaluation] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] || null;
+    setFile(selected);
+    if (selected) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(selected);
+    }
+  };
+
+  const sendToServer = async (endpoint: "/upload" | "/avaliar") => {
+    if (!file) return;
+    setLoading(true);
+    setTranscription(null);
+    setEvaluation(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`http://localhost:5002${endpoint}`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      if (endpoint === "/upload") setTranscription(data.transcription);
+      if (endpoint === "/avaliar") setEvaluation(data.avaliacao);
+    } catch (error) {
+      setTranscription("Erro ao conectar com o backend.");
+      setEvaluation("Erro ao conectar com o backend.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-yellow-100 via-white to-yellow-300 p-6 flex flex-col items-center">
+      <h1 className="text-4xl md:text-5xl font-extrabold text-yellow-700 text-center mb-4">Redação IA</h1>
+      <p className="text-gray-700 text-lg mb-6 text-center max-w-xl">Envie uma imagem da redação manuscrita, e veja a transcrição e avaliação instantaneamente com IA.</p>
+
+      <div className="bg-white shadow-lg rounded-xl p-6 w-full max-w-2xl border border-yellow-300">
+        <input type="file" accept="image/*" onChange={handleFileChange} className="mb-4" />
+
+        {imagePreview && (
+          <Image src={imagePreview} alt="Preview" width={400} height={400} className="mb-4 rounded-md shadow-md border border-gray-300" />
+        )}
+
+        <div className="flex gap-4 mb-4">
+          <button onClick={() => sendToServer("/upload")}
+                  className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded shadow">
+            <Upload size={18} /> Transcrever
+          </button>
+          <button onClick={() => sendToServer("/avaliar")}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded shadow">
+            <SpellCheck2 size={18} /> Avaliar
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {loading && <p className="text-yellow-700 font-semibold">⏳ Processando...</p>}
+
+        {transcription && (
+          <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded p-4">
+            <h2 className="text-lg font-bold text-yellow-700 mb-2">📝 Transcrição:</h2>
+            <p className="whitespace-pre-line text-gray-800">{transcription}</p>
+          </div>
+        )}
+
+        {evaluation && (
+          <div className="mt-4 bg-blue-50 border border-blue-300 rounded p-4">
+            <h2 className="text-lg font-bold text-blue-700 mb-2">📊 Avaliação:</h2>
+            <p className="whitespace-pre-line text-gray-800">{evaluation}</p>
+          </div>
+        )}
+      </div>
+
+      <footer className="mt-8 text-sm text-gray-500">© {new Date().getFullYear()} Redação IA</footer>
+    </main>
   );
 }
