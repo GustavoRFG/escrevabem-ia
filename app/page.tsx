@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Upload, SpellCheck2, Bot } from "lucide-react";
+import { Upload, SpellCheck2 } from "lucide-react";
+
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -31,7 +32,7 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const res = await fetch(`http://localhost:5002${endpoint}`, {
+      const res = await fetch(`https://cf63-2804-1b2-11c0-8707-c114-e798-a406-5689.ngrok-free.app${endpoint}`, {
         method: "POST",
         body: formData,
       });
@@ -51,6 +52,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-yellow-100 via-white to-yellow-300 p-6 flex flex-col items-center">
+            {/* LOGO */}
+      <Image src="/logo.png" alt="Chatbot Logo" width={120} height={120} />
       <h1 className="text-4xl md:text-5xl font-extrabold text-yellow-700 text-center mb-4">Redação IA</h1>
       <p className="text-gray-700 text-lg mb-6 text-center max-w-xl">Envie uma imagem da redação manuscrita, e veja a transcrição e avaliação instantaneamente com IA.</p>
 
