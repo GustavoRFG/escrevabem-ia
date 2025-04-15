@@ -1,0 +1,1 @@
+        <input type="file" accept="image/*" onChange={handleFileChange} className="mb-4 border-2 border-dashed border-yellow-400 rounded p-2 w-full cursor-pointer text-sm bg-yellow-50 hover:bg-yellow-100" />
