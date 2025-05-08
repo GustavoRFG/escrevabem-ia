@@ -44,7 +44,8 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(`https://6740-2804-1b2-11c0-72a5-ec0c-bb9c-6d84-fcaf.ngrok-free.app${endpoint}`, {
+      const res = await fetch(`https://0140-2804-1b2-11c0-72a5-3c6c-9d01-f8b7-b8aa.ngrok-free.app${endpoint}`, {
+        // const res = await fetch(`http://localhost:5002/${endpoint}`, {
         method: "POST",
         body: formData,
       });
